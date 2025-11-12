@@ -53,6 +53,31 @@ export const TenantIcon: React.FC = () => (
     </svg>
 );
 
+export const MineIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.62,8.82l-6-6A2,2,0,0,0,13.21,2H10.79a2,2,0,0,0-1.41.59l-6,6a2,2,0,0,0,0,2.82l6,6A2,2,0,0,0,10.79,22h2.42a2,2,0,0,0,1.41-.59l6-6a2,2,0,0,0,0-2.82ZM12,14a2,2,0,1,1,2-2A2,2,0,0,1,12,14Z"/>
+    </svg>
+);
+
+
+export const SmithyIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.2,4.82,21.5,8.19a1,1,0,0,1,.5,1.27L18,20.89a1,1,0,0,1-1.27.5l-6.53-3.15a1,1,0,0,1-.5-1.27L13,4.42A1,1,0,0,1,14.2,4.82ZM2.5,14.5,9.22,18a1,1,0,0,0,1.27-.5l3.57-12.6a1,1,0,0,0-.5-1.27L7,1.25a1,1,0,0,0-1.27.5L2.2,13.23A1,1,0,0,0,2.5,14.5Z"/>
+    </svg>
+);
+
+export const CountryIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.707 4.293l.586-.586a2 2 0 012.828 0l2 2a2 2 0 010 2.828l-2 2a2 2 0 01-2.828 0l-.586-.586M12 22a9 9 0 100-18 9 9 0 000 18z" />
+    </svg>
+);
+
+export const SystemIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+);
 
 export const CitizenIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,6 +1,6 @@
 
 
-import { Crop, CropType, FacilityCategory, FacilityInfo, RuinType, Product, CompanyInfo } from './types';
+import { Crop, CropType, FacilityCategory, FacilityInfo, RuinType, Product, CompanyInfo, Mineral, Weapon, CountryId, CountryInfo, SpecialtyGood } from './types';
 
 export const GROW_TIME_MS = 60 * 1000; // 60 seconds for demo. Original request was 1 hour.
 
@@ -23,6 +23,79 @@ export const CITIZEN_VALUE_MULTIPLIER = 10000; // Increase in market value per c
 export const PRODUCTION_RECORD_MULTIPLIER = 500; // Increase in market value per unit in production record
 export const TENANT_PROFIT_MARKET_VALUE_MULTIPLIER = 0.05; // 5% of total market cap
 export const TENANT_PROFIT_CITIZEN_BONUS = 1000; // Bonus profit per citizen in tenant
+
+// Mining and Smithing Constants
+export const MINING_DURATION_MS = 60 * 60 * 1000; // 1 hour
+export const MINERALS_PER_RUN = 20;
+
+export const MINERAL_TYPES = [
+    'diamond', 'gold', 'platinum', 'iron', 'copper', 'silver', 'aluminum', 'tin', 'sulfur', 'brass'
+];
+
+export const INITIAL_MINERALS: Record<string, Mineral> = {
+  diamond: { id: 'diamond', name: 'ダイヤモンド', sellPrice: 50000 },
+  gold: { id: 'gold', name: '金', sellPrice: 30000 },
+  platinum: { id: 'platinum', name: 'プラチナ', sellPrice: 40000 },
+  iron: { id: 'iron', name: '鉄', sellPrice: 5000 },
+  copper: { id: 'copper', name: '銅', sellPrice: 4000 },
+  silver: { id: 'silver', name: '銀', sellPrice: 10000 },
+  aluminum: { id: 'aluminum', name: 'アルミニウム', sellPrice: 3000 },
+  tin: { id: 'tin', name: 'スズ', sellPrice: 2000 },
+  sulfur: { id: 'sulfur', name: '硫黄', sellPrice: 1500 },
+  brass: { id: 'brass', name: '真鍮', sellPrice: 6000 },
+};
+
+export const INITIAL_WEAPONS: Record<string, Weapon> = {
+  musket: { id: 'musket', name: 'マスケット銃', sellPrice: 150000, recipe: { iron: 1, copper: 1, aluminum: 1, tin: 1, sulfur: 1, brass: 1 } },
+  charlemagnes_sword: { id: 'charlemagnes_sword', name: 'カール大帝の剣', sellPrice: 1000000, recipe: { diamond: 2, gold: 2, platinum: 2 } },
+};
+
+// Country Constants
+export const COUNTRY_PRODUCTION_DURATION_MS = 60 * 60 * 1000; // 1 hour
+export const BASE_GOODS_PER_PRODUCTION = 1;
+export const BASE_BONDS_PER_PRODUCTION = 20;
+export const RANK_UPGRADE_BASE_COST = 20;
+
+export const INITIAL_SPECIALTY_GOODS: Record<string, SpecialtyGood> = {
+  taco_bell_tacos: { id: 'taco_bell_tacos', name: 'タコベルのタコス', sellPrice: 50000 },
+  maple_syrup: { id: 'maple_syrup', name: 'カナダ産メープルシロップ', sellPrice: 60000 },
+  vodka: { id: 'vodka', name: 'プーチン愛飲のウォッカ', sellPrice: 80000 },
+  shumai_bento: { id: 'shumai_bento', name: '崎陽軒焼売弁当', sellPrice: 40000 },
+};
+
+export const COUNTRY_DATA: Record<CountryId, CountryInfo> = {
+  usa: {
+    id: 'usa',
+    name: 'アメリカ',
+    specialtyGoodId: 'taco_bell_tacos',
+    conquestRequirements: { musket: 1, charlemagnes_sword: 1 },
+    conquestCitizenReward: 100,
+  },
+  canada: {
+    id: 'canada',
+    name: 'カナダ',
+    specialtyGoodId: 'maple_syrup',
+    conquestRequirements: { musket: 5, charlemagnes_sword: 2 },
+    conquestCitizenReward: 150,
+  },
+  russia: {
+    id: 'russia',
+    name: 'ロシア',
+    specialtyGoodId: 'vodka',
+    conquestRequirements: { musket: 10, charlemagnes_sword: 5 },
+    conquestCitizenReward: 200,
+  },
+  japan: {
+    id: 'japan',
+    name: '日本',
+    specialtyGoodId: 'shumai_bento',
+    conquestRequirements: { musket: 15, charlemagnes_sword: 10 },
+    conquestCitizenReward: 250,
+  },
+};
+
+export const ALL_COUNTRIES: CountryId[] = ['usa', 'canada', 'russia', 'japan'];
+
 
 export const RUIN_DATA = {
     [RuinType.Maya]: {
@@ -55,8 +128,8 @@ export const INITIAL_PRODUCTS: Record<string, Product> = {
 };
 
 export const INITIAL_COMPANIES: Record<string, CompanyInfo> = {
-    gemini_foods: { id: 'gemini_foods', name: 'ジェミニフーズ', baseMarketValue: 200000, products: ['apple_pie', 'tomato_soup'] },
-    oceans_bounty: { id: 'oceans_bounty', name: 'オーシャンズバウンティ', baseMarketValue: 350000, products: ['grilled_saury', 'eel_bowl'] },
+    gemini_foods: { id: 'gemini_foods', name: '富士山麓フーズ', baseMarketValue: 200000, products: ['apple_pie', 'tomato_soup'] },
+    oceans_bounty: { id: 'oceans_bounty', name: '町田商店', baseMarketValue: 350000, products: ['grilled_saury', 'eel_bowl'] },
 };
 
 

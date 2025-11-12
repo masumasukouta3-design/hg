@@ -1,11 +1,12 @@
 
 
 import React, { useState, useReducer, useEffect, useMemo, useCallback } from 'react';
-import { GameState, GameAction, Facility, FacilityCategory, RuinType, Company, Tenant } from './types';
+import { GameState, GameAction, Facility, FacilityCategory, RuinType, Company, Tenant, CountryId } from './types';
 import { 
     INITIAL_CROPS, FACILITIES_FOR_SALE, RESEARCH_COST, RESEARCH_SUCCESS_RATE, HARVEST_FRAGMENT_CHANCE, 
     FRAGMENTS_TO_RUIN_COST, RUIN_DATA, BASE_PROFIT_PER_RUIN, INITIAL_PRODUCTS, INITIAL_COMPANIES,
-    TENANT_COST, COMPANY_COST, CITIZEN_VALUE_MULTIPLIER, PRODUCTION_RECORD_MULTIPLIER, TENANT_PROFIT_MARKET_VALUE_MULTIPLIER, TENANT_PROFIT_CITIZEN_BONUS
+    TENANT_COST, COMPANY_COST, CITIZEN_VALUE_MULTIPLIER, PRODUCTION_RECORD_MULTIPLIER, TENANT_PROFIT_MARKET_VALUE_MULTIPLIER, TENANT_PROFIT_CITIZEN_BONUS,
+    INITIAL_MINERALS, INITIAL_WEAPONS, COUNTRY_DATA, RANK_UPGRADE_BASE_COST
 } from './constants';
 import FarmView from './components/FarmView';
 import WarehouseView from './components/WarehouseView';
@@ -14,10 +15,14 @@ import LabView from './components/LabView';
 import RuinsView from './components/RuinsView';
 import CompanyView from './components/CompanyView';
 import TenantView from './components/TenantView';
-import { MoneyIcon, FarmIcon, WarehouseIcon, MarketIcon, LabIcon, RuinsIcon, CompanyIcon, TenantIcon, CitizenIcon } from './components/icons';
+import MineView from './components/MineView';
+import SmithyView from './components/SmithyView';
+import CountryView from './components/CountryView';
+import SystemView from './components/SystemView';
+import { MoneyIcon, FarmIcon, WarehouseIcon, MarketIcon, LabIcon, RuinsIcon, CompanyIcon, TenantIcon, CitizenIcon, MineIcon, SmithyIcon, CountryIcon, SystemIcon } from './components/icons';
 
 const initialGameState: GameState = {
-  money: 1000000,
+  money: 10000000000000,
   facilities: [
     { id: `fac-${Date.now()}-1`, name: '畑', category: FacilityCategory.Field, capacity: 10, plantedCrop: null },
     { id: `fac-${Date.now()}-2`, name: '船', category: FacilityCategory.Sea, capacity: 10, plantedCrop: null },
@@ -45,6 +50,13 @@ const initialGameState: GameState = {
   productData: INITIAL_PRODUCTS,
   companyData: INITIAL_COMPANIES,
   tenantProfitState: {},
+  minerals: {},
+  weapons: {},
+  mineState: {
+    startTime: null,
+  },
+  countries: {},
+  specialtyGoods: {},
 };
 
 function calculateMarketValue(company: Company, companyData: GameState['companyData']): number {
@@ -358,12 +370,184 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             }
         };
     }
+    case 'START_MINING': {
+        if (state.mineState.startTime !== null) return state;
+        return { ...state, mineState: { startTime: Date.now() } };
+    }
+    case 'COLLECT_MINERALS': {
+        const { collected } = action.payload;
+        const updatedMinerals = { ...state.minerals };
+        for (const mineralId in collected) {
+            updatedMinerals[mineralId] = (updatedMinerals[mineralId] || 0) + collected[mineralId];
+        }
+        return {
+            ...state,
+            minerals: updatedMinerals,
+            mineState: { startTime: null },
+        };
+    }
+    case 'SELL_MINERAL': {
+        const { mineralId, quantity, earnings } = action.payload;
+        return {
+            ...state,
+            money: state.money + earnings,
+            minerals: {
+                ...state.minerals,
+                [mineralId]: (state.minerals[mineralId] || 0) - quantity,
+            },
+        };
+    }
+    case 'CRAFT_WEAPON': {
+        const { weaponId } = action.payload;
+        const weaponInfo = INITIAL_WEAPONS[weaponId];
+        if (!weaponInfo) return state;
+
+        const canCraft = Object.entries(weaponInfo.recipe).every(
+            ([mineralId, required]) => (state.minerals[mineralId] || 0) >= required
+        );
+
+        if (!canCraft) return state;
+
+        const updatedMinerals = { ...state.minerals };
+        Object.entries(weaponInfo.recipe).forEach(
+            ([mineralId, required]) => {
+                updatedMinerals[mineralId] -= required;
+            }
+        );
+
+        return {
+            ...state,
+            minerals: updatedMinerals,
+            weapons: {
+                ...state.weapons,
+                [weaponId]: (state.weapons[weaponId] || 0) + 1,
+            },
+        };
+    }
+    case 'SELL_WEAPON': {
+        const { weaponId, quantity, earnings } = action.payload;
+        return {
+            ...state,
+            money: state.money + earnings,
+            weapons: {
+                ...state.weapons,
+                [weaponId]: (state.weapons[weaponId] || 0) - quantity,
+            },
+        };
+    }
+    case 'CONQUER_COUNTRY': {
+        const { countryId } = action.payload;
+        const countryInfo = COUNTRY_DATA[countryId];
+        if (!countryInfo || state.countries[countryId]) return state;
+
+        const hasEnoughWeapons = Object.entries(countryInfo.conquestRequirements).every(
+            ([weaponId, required]) => (state.weapons[weaponId] || 0) >= required
+        );
+        if (!hasEnoughWeapons) return state;
+
+        const updatedWeapons = { ...state.weapons };
+        Object.entries(countryInfo.conquestRequirements).forEach(
+            ([weaponId, required]) => {
+                updatedWeapons[weaponId] -= required;
+            }
+        );
+
+        return {
+            ...state,
+            weapons: updatedWeapons,
+            citizens: state.citizens + countryInfo.conquestCitizenReward,
+            countries: {
+                ...state.countries,
+                [countryId]: {
+                    militaryLevel: 1,
+                    economicLevel: 1,
+                    politicalLevel: 1,
+                    bonds: 0,
+                    productionState: { startTime: null },
+                }
+            }
+        };
+    }
+    case 'START_COUNTRY_PRODUCTION': {
+        const { countryId } = action.payload;
+        const countryState = state.countries[countryId];
+        if (!countryState || countryState.productionState.startTime !== null) return state;
+        
+        return {
+            ...state,
+            countries: {
+                ...state.countries,
+                [countryId]: {
+                    ...countryState,
+                    productionState: { startTime: Date.now() }
+                }
+            }
+        };
+    }
+    case 'COLLECT_COUNTRY_PRODUCTION': {
+        const { countryId, specialtyGoodId, goodsAmount, bondsAmount } = action.payload;
+        const countryState = state.countries[countryId];
+        if (!countryState) return state;
+
+        return {
+            ...state,
+            specialtyGoods: {
+                ...state.specialtyGoods,
+                [specialtyGoodId]: (state.specialtyGoods[specialtyGoodId] || 0) + goodsAmount,
+            },
+            countries: {
+                ...state.countries,
+                [countryId]: {
+                    ...countryState,
+                    bonds: countryState.bonds + bondsAmount,
+                    productionState: { startTime: null }
+                }
+            }
+        };
+    }
+    case 'UPGRADE_COUNTRY_RANK': {
+        const { countryId, rank } = action.payload;
+        const countryState = state.countries[countryId];
+        if (!countryState) return state;
+        
+        const currentLevel = countryState[rank];
+        if (currentLevel >= 10) return state;
+
+        const cost = RANK_UPGRADE_BASE_COST * (currentLevel + 1);
+        if (countryState.bonds < cost) return state;
+
+        return {
+            ...state,
+            countries: {
+                ...state.countries,
+                [countryId]: {
+                    ...countryState,
+                    [rank]: currentLevel + 1,
+                    bonds: countryState.bonds - cost,
+                }
+            }
+        };
+    }
+    case 'SELL_SPECIALTY_GOOD': {
+        const { specialtyGoodId, quantity, earnings } = action.payload;
+        return {
+            ...state,
+            money: state.money + earnings,
+            specialtyGoods: {
+                ...state.specialtyGoods,
+                [specialtyGoodId]: (state.specialtyGoods[specialtyGoodId] || 0) - quantity,
+            },
+        };
+    }
+    case 'LOAD_GAME': {
+        return action.payload.newState;
+    }
     default:
       return state;
   }
 }
 
-type Tab = 'Farm' | 'Warehouse' | 'Market' | 'Lab' | 'Ruins' | 'Company' | 'Tenant';
+type Tab = 'Farm' | 'Warehouse' | 'Market' | 'Lab' | 'Ruins' | 'Company' | 'Tenant' | 'Mine' | 'Smithy' | 'Country' | 'System';
 
 const App: React.FC = () => {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
@@ -416,6 +600,14 @@ const App: React.FC = () => {
         return <CompanyView gameState={gameState} dispatch={dispatch} />;
       case 'Tenant':
         return <TenantView gameState={gameState} dispatch={dispatch} now={now} onClaimProfit={handleClaimTenantProfit} />;
+      case 'Mine':
+        return <MineView gameState={gameState} dispatch={dispatch} now={now} />;
+      case 'Smithy':
+        return <SmithyView gameState={gameState} dispatch={dispatch} />;
+      case 'Country':
+        return <CountryView gameState={gameState} dispatch={dispatch} now={now} />;
+      case 'System':
+        return <SystemView gameState={gameState} dispatch={dispatch} />;
       default:
         return null;
     }
@@ -431,6 +623,10 @@ const App: React.FC = () => {
     { name: 'Ruins', icon: <RuinsIcon /> },
     { name: 'Company', icon: <CompanyIcon /> },
     { name: 'Tenant', icon: <TenantIcon /> },
+    { name: 'Mine', icon: <MineIcon /> },
+    { name: 'Smithy', icon: <SmithyIcon /> },
+    { name: 'Country', icon: <CountryIcon /> },
+    { name: 'System', icon: <SystemIcon /> },
   ];
 
   return (

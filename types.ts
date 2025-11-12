@@ -17,6 +17,8 @@ export enum RuinType {
   NuevaEspana = 'NuevaEspana',
 }
 
+export type CountryId = 'usa' | 'canada' | 'russia' | 'japan';
+
 export interface Crop {
   id: string;
   name: string;
@@ -81,6 +83,44 @@ export interface Tenant {
     assignedCitizens: number;
 }
 
+export interface Mineral {
+  id: string;
+  name: string;
+  sellPrice: number;
+}
+
+export interface Weapon {
+  id: string;
+  name: string;
+  sellPrice: number;
+  recipe: Record<string, number>; // mineralId -> quantity
+}
+
+export interface SpecialtyGood {
+  id: string;
+  name: string;
+  sellPrice: number;
+}
+
+export interface CountryInfo {
+  id: CountryId;
+  name: string;
+  specialtyGoodId: string;
+  conquestRequirements: Record<string, number>; // weaponId -> quantity
+  conquestCitizenReward: number;
+}
+
+export interface ConqueredCountryState {
+  militaryLevel: number;
+  economicLevel: number;
+  politicalLevel: number;
+  bonds: number;
+  productionState: {
+    startTime: number | null;
+  };
+}
+
+
 export interface GameState {
   money: number;
   facilities: Facility[];
@@ -104,6 +144,15 @@ export interface GameState {
   productData: Record<string, Product>;
   companyData: Record<string, CompanyInfo>;
   tenantProfitState: Record<string, { startTime: number | null }>; // tenantId -> state
+  // New State for Mine/Smithy feature
+  minerals: Record<string, number>; // mineralId -> quantity
+  weapons: Record<string, number>; // weaponId -> quantity
+  mineState: {
+    startTime: number | null;
+  };
+  // New State for Country feature
+  countries: Partial<Record<CountryId, ConqueredCountryState>>;
+  specialtyGoods: Record<string, number>; // specialtyGoodId -> quantity
 }
 
 export type GameAction =
@@ -127,4 +176,17 @@ export type GameAction =
   | { type: 'ASSIGN_CITIZENS'; payload: { targetId: string; targetType: 'company' | 'tenant'; amount: number } }
   | { type: 'WITHDRAW_CITIZENS'; payload: { targetId: string; targetType: 'company' | 'tenant'; amount: number } }
   | { type: 'START_TENANT_PROFIT_COLLECTION'; payload: { tenantId: string } }
-  | { type: 'CLAIM_TENANT_PROFIT'; payload: { tenantId: string; earnings: number } };
+  | { type: 'CLAIM_TENANT_PROFIT'; payload: { tenantId: string; earnings: number } }
+  // New Actions for Mine/Smithy feature
+  | { type: 'START_MINING' }
+  | { type: 'COLLECT_MINERALS'; payload: { collected: Record<string, number> } }
+  | { type: 'SELL_MINERAL'; payload: { mineralId: string; quantity: number; earnings: number } }
+  | { type: 'CRAFT_WEAPON'; payload: { weaponId: string } }
+  | { type: 'SELL_WEAPON'; payload: { weaponId: string; quantity: number; earnings: number } }
+  // New Actions for Country feature
+  | { type: 'CONQUER_COUNTRY'; payload: { countryId: CountryId } }
+  | { type: 'START_COUNTRY_PRODUCTION'; payload: { countryId: CountryId } }
+  | { type: 'COLLECT_COUNTRY_PRODUCTION'; payload: { countryId: CountryId, specialtyGoodId: string, goodsAmount: number, bondsAmount: number } }
+  | { type: 'UPGRADE_COUNTRY_RANK'; payload: { countryId: CountryId; rank: 'militaryLevel' | 'economicLevel' | 'politicalLevel' } }
+  | { type: 'SELL_SPECIALTY_GOOD'; payload: { specialtyGoodId: string; quantity: number; earnings: number } }
+  | { type: 'LOAD_GAME'; payload: { newState: GameState } };

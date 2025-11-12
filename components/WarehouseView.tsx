@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { GameState, GameAction, Crop, Product } from '../types';
-import { STAT_SELL_PRICE_MULTIPLIER } from '../constants';
+import { STAT_SELL_PRICE_MULTIPLIER, INITIAL_MINERALS, INITIAL_WEAPONS, INITIAL_SPECIALTY_GOODS } from '../constants';
 import { StarIcon } from './icons';
 
 interface WarehouseViewProps {
@@ -16,7 +16,7 @@ const calculateSellPrice = (crop: Crop): number => {
 };
 
 const WarehouseView: React.FC<WarehouseViewProps> = ({ gameState, dispatch }) => {
-  const { products, cropData, companyProducts, productData } = gameState;
+  const { products, cropData, companyProducts, productData, minerals, weapons, specialtyGoods } = gameState;
 
   const handleSellCrop = (cropId: string, quantity: number) => {
     const crop = cropData[cropId];
@@ -30,9 +30,30 @@ const WarehouseView: React.FC<WarehouseViewProps> = ({ gameState, dispatch }) =>
     const earnings = product.sellPrice * quantity;
     dispatch({ type: 'SELL_COMPANY_PRODUCT', payload: { productId, quantity, earnings } });
   };
+
+  const handleSellMineral = (mineralId: string, quantity: number) => {
+    const mineral = INITIAL_MINERALS[mineralId];
+    const earnings = mineral.sellPrice * quantity;
+    dispatch({ type: 'SELL_MINERAL', payload: { mineralId, quantity, earnings } });
+  };
+
+  const handleSellWeapon = (weaponId: string, quantity: number) => {
+    const weapon = INITIAL_WEAPONS[weaponId];
+    const earnings = weapon.sellPrice * quantity;
+    dispatch({ type: 'SELL_WEAPON', payload: { weaponId, quantity, earnings } });
+  };
   
+  const handleSellSpecialtyGood = (specialtyGoodId: string, quantity: number) => {
+    const good = INITIAL_SPECIALTY_GOODS[specialtyGoodId];
+    const earnings = good.sellPrice * quantity;
+    dispatch({ type: 'SELL_SPECIALTY_GOOD', payload: { specialtyGoodId, quantity, earnings } });
+  };
+
   const productIds = Object.keys(products).filter(id => products[id] > 0);
   const companyProductIds = Object.keys(companyProducts).filter(id => companyProducts[id] > 0);
+  const mineralIds = Object.keys(minerals).filter(id => minerals[id] > 0);
+  const weaponIds = Object.keys(weapons).filter(id => weapons[id] > 0);
+  const specialtyGoodIds = Object.keys(specialtyGoods).filter(id => specialtyGoods[id] > 0);
 
   return (
     <div className="animate-fade-in space-y-8">
@@ -113,6 +134,115 @@ const WarehouseView: React.FC<WarehouseViewProps> = ({ gameState, dispatch }) =>
                 </div>
             )}
         </div>
+
+        <div>
+            <h2 className="text-2xl font-bold text-yellow-400 mb-4">鉱物倉庫</h2>
+            {mineralIds.length === 0 ? (
+                <p className="text-center text-gray-500 mt-8">鉱物の倉庫は空です。</p>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {mineralIds.map(mineralId => {
+                        const mineral = INITIAL_MINERALS[mineralId];
+                        const quantity = minerals[mineralId];
+                        return (
+                            <div key={mineralId} className="bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
+                                <h3 className="text-xl font-bold text-yellow-400">{mineral.name}</h3>
+                                <p className="text-gray-400">所持数: {quantity}</p>
+                                <p className="text-gray-400">売値: {new Intl.NumberFormat('ja-JP').format(mineral.sellPrice)} 円</p>
+                                <div className="mt-auto pt-4 flex space-x-2">
+                                    <button
+                                        onClick={() => handleSellMineral(mineralId, 10)}
+                                        disabled={quantity < 10}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                                    >
+                                        10個売る
+                                    </button>
+                                    <button
+                                        onClick={() => handleSellMineral(mineralId, quantity)}
+                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                                    >
+                                        全部売る
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+
+        <div>
+            <h2 className="text-2xl font-bold text-red-400 mb-4">武器倉庫</h2>
+            {weaponIds.length === 0 ? (
+                <p className="text-center text-gray-500 mt-8">武器の倉庫は空です。</p>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {weaponIds.map(weaponId => {
+                        const weapon = INITIAL_WEAPONS[weaponId];
+                        const quantity = weapons[weaponId];
+                        return (
+                            <div key={weaponId} className="bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
+                                <h3 className="text-xl font-bold text-red-400">{weapon.name}</h3>
+                                <p className="text-gray-400">所持数: {quantity}</p>
+                                <p className="text-gray-400">売値: {new Intl.NumberFormat('ja-JP').format(weapon.sellPrice)} 円</p>
+                                <div className="mt-auto pt-4 flex space-x-2">
+                                    <button
+                                        onClick={() => handleSellWeapon(weaponId, 1)}
+                                        disabled={quantity < 1}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                                    >
+                                        1個売る
+                                    </button>
+                                    <button
+                                        onClick={() => handleSellWeapon(weaponId, quantity)}
+                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                                    >
+                                        全部売る
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+
+        <div>
+            <h2 className="text-2xl font-bold text-purple-400 mb-4">特産品倉庫</h2>
+            {specialtyGoodIds.length === 0 ? (
+                <p className="text-center text-gray-500 mt-8">特産品の倉庫は空です。</p>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {specialtyGoodIds.map(goodId => {
+                        const good = INITIAL_SPECIALTY_GOODS[goodId];
+                        const quantity = specialtyGoods[goodId];
+                        return (
+                            <div key={goodId} className="bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
+                                <h3 className="text-xl font-bold text-purple-400">{good.name}</h3>
+                                <p className="text-gray-400">所持数: {quantity}</p>
+                                <p className="text-gray-400">売値: {new Intl.NumberFormat('ja-JP').format(good.sellPrice)} 円</p>
+                                <div className="mt-auto pt-4 flex space-x-2">
+                                    <button
+                                        onClick={() => handleSellSpecialtyGood(goodId, 1)}
+                                        disabled={quantity < 1}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                                    >
+                                        1個売る
+                                    </button>
+                                    <button
+                                        onClick={() => handleSellSpecialtyGood(goodId, quantity)}
+                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                                    >
+                                        全部売る
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+
     </div>
   );
 };
